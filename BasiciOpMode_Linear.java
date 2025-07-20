@@ -91,7 +91,9 @@ public class BasiciOpMode_Linear extends LinearOpMode {
     //declared as null as they will be defined later but they should default to null
     // .
     //more variables can be put here
-
+    
+    int number = 9;
+    
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftFrontDrive = null;
     private DcMotor leftBackDrive = null;
@@ -109,6 +111,8 @@ public class BasiciOpMode_Linear extends LinearOpMode {
         * runs through sequentially once then waits
         * variables can be declared here as well
         * */
+        
+        long num = 999999999;
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
@@ -175,7 +179,7 @@ public class BasiciOpMode_Linear extends LinearOpMode {
                 schlonk.getPosition();//this one more important
                 schlonk.getDirection();
 
-            //Continuous Servo Control(mostly treated as a motor)
+            //Continuous Servo Control(mostly treax`ted as a motor)
 
                 //setters
                 wheel.setPower(1);
@@ -249,6 +253,23 @@ public class BasiciOpMode_Linear extends LinearOpMode {
                 * do not use any "while" or "for" loops here
                 * remember everything is already getting looped through inside this loop*/
 
+
+            /*END*/
+
+            /*EXAMPLES(from kronk25)*/
+
+            magnitudeR/*this variable is*/ = /*t he square root of the x value of joystick squared*/Math.sqrt(Math.pow(gamepad1.right_stick_x, 2) + /*plus the same to the y*/Math.pow(gamepad1.right_stick_y, 2));
+            //Cap for if it goes over 1 it defaults back to one as the motors can only be set to a max power of 1
+            //because the hypotenuse is the longest 🤓
+            if (magnitudeR > 1) {
+                magnitudeR = 1;
+            }
+
+
+            if (gamepad1.right_stick_x <= 1 && gamepad1.right_stick_x >= 0 && gamepad1.right_stick_y <= 0) {
+                frontright.setPower(Powervary * 1 * magnitudeR * (1 - 2 * gamepad1.right_stick_x));
+                backright.setPower(Powervary * 1 * magnitudeR);
+            }
 
             /*END*/
 
