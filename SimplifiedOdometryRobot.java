@@ -118,7 +118,6 @@ public class SimplifiedOdometryRobot {
                         RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
 
-        //pinpoint = myOpMode.hardwareMap.get(I2cDeviceSynch.class, "pinpoint");
         pinpoint = myOpMode.hardwareMap.get(I2cDeviceSynch.class, "pinpoint");
         pinpoint.setI2cAddress(I2cAddr.create7bit(0x31)); // Default address for Pinpoint (check docs to confirm)
         pinpoint.engage();
