@@ -160,6 +160,8 @@ public class SimplifiedOdometryRobot {
 
         driveDistance = (rawDriveOdometer - driveOdometerOffset) * ODOM_INCHES_PER_COUNT;
         strafeDistance = (rawStrafeOdometer - strafeOdometerOffset) * ODOM_INCHES_PER_COUNT;
+        rawHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        heading = rawHeading - headingOffset;
 
         if (showTelemetry) {
             myOpMode.telemetry.addData("Pinpoint Ax:Lat", "%6d %6d", rawDriveOdometer, rawStrafeOdometer);
@@ -189,7 +191,7 @@ public class SimplifiedOdometryRobot {
         while (myOpMode.opModeIsActive() && readSensors()){
 
             // implement desired axis powers
-            //moveRobot(driveController.getOutput(driveDistance), strafeController.getOutput(strafeDistance), yawController.getOutput(heading));
+            moveRobot(driveController.getOutput(driveDistance), strafeController.getOutput(strafeDistance), yawController.getOutput(heading));
 
             // Time to exit?
             if (driveController.inPosition() && yawController.inPosition()) {
@@ -221,7 +223,7 @@ public class SimplifiedOdometryRobot {
         while (myOpMode.opModeIsActive() && readSensors()){
 
             // implement desired axis powers
-            //moveRobot(driveController.getOutput(driveDistance), strafeController.getOutput(strafeDistance), yawController.getOutput(heading));
+            moveRobot(driveController.getOutput(driveDistance), strafeController.getOutput(strafeDistance), yawController.getOutput(heading));
 
             // Time to exit?
             if (strafeController.inPosition() && yawController.inPosition()) {
@@ -248,7 +250,7 @@ public class SimplifiedOdometryRobot {
         while (myOpMode.opModeIsActive() && readSensors()) {
 
             // implement desired axis powers
-            //moveRobot(0, 0, yawController.getOutput(heading));
+            moveRobot(0, 0, yawController.getOutput(heading));
 
             // Time to exit?
             if (yawController.inPosition()) {
