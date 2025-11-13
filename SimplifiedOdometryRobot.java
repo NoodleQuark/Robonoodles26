@@ -62,8 +62,8 @@ public class SimplifiedOdometryRobot {
     private DcMotor rightBackDrive;     //  control the right back drive wheel
     private I2cDeviceSynch pinpoint;  // Interface for GoBilda Pinpoint Odometry
 
-    //private DcMotor driveEncoder;       //  the Axial (front/back) Odometry Module (may overlap with motor, or may not)
-    //private DcMotor strafeEncoder;      //  the Lateral (left/right) Odometry Module (may overlap with motor, or may not)
+    private DcMotor driveEncoder;       //  the Axial (front/back) Odometry Module (may overlap with motor, or may not)
+    private DcMotor strafeEncoder;      //  the Lateral (left/right) Odometry Module (may overlap with motor, or may not)
 
     private LinearOpMode myOpMode;
     private IMU imu;
