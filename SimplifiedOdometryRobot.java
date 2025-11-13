@@ -103,8 +103,8 @@ public class SimplifiedOdometryRobot {
         imu = myOpMode.hardwareMap.get(IMU.class, "imu");
 
         //  Connect to the encoder channels using the name of that channel.
-        // driveEncoder = myOpMode.hardwareMap.get(DcMotor.class, "axial");
-        // strafeEncoder = myOpMode.hardwareMap.get(DcMotor.class, "lateral");
+        driveEncoder = myOpMode.hardwareMap.get(DcMotor.class, "axial");
+        strafeEncoder = myOpMode.hardwareMap.get(DcMotor.class, "lateral");
 
         // Set all hubs to use the AUTO Bulk Caching mode for faster encoder reads
         List<LynxModule> allHubs = myOpMode.hardwareMap.getAll(LynxModule.class);
