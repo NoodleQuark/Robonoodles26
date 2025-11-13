@@ -6,6 +6,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -15,6 +16,9 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
 
 import java.util.List;
 
@@ -60,7 +64,7 @@ public class SimplifiedOdometryRobot {
     private DcMotor rightFrontDrive;    //  control the right front drive wheel
     private DcMotor leftBackDrive;      //  control the left back drive wheel
     private DcMotor rightBackDrive;     //  control the right back drive wheel
-    private I2cDeviceSynch pinpoint;  // Interface for GoBilda Pinpoint Odometry
+    private GoBildaPinpointDriver pinpoint;  // Interface for GoBilda Pinpoint Odometry
 
     //private DcMotor driveEncoder;       //  the Axial (front/back) Odometry Module (may overlap with motor, or may not)
     //private DcMotor strafeEncoder;      //  the Lateral (left/right) Odometry Module (may overlap with motor, or may not)
@@ -103,8 +107,8 @@ public class SimplifiedOdometryRobot {
         imu = myOpMode.hardwareMap.get(IMU.class, "imu");
 
         //  Connect to the encoder channels using the name of that channel.
-        //driveEncoder = myOpMode.hardwareMap.get(DcMotor.class, "axial");
-        //strafeEncoder = myOpMode.hardwareMap.get(DcMotor.class, "lateral");
+        // driveEncoder = myOpMode.hardwareMap.get(DcMotor.class, "axial");
+        // strafeEncoder = myOpMode.hardwareMap.get(DcMotor.class, "lateral");
 
         // Set all hubs to use the AUTO Bulk Caching mode for faster encoder reads
         List<LynxModule> allHubs = myOpMode.hardwareMap.getAll(LynxModule.class);
@@ -118,9 +122,9 @@ public class SimplifiedOdometryRobot {
                         RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
 
-        pinpoint = myOpMode.hardwareMap.get(I2cDeviceSynch.class, "pinpoint");
-        pinpoint.setI2cAddress(I2cAddr.create7bit(0x31)); // Default address for Pinpoint (check docs to confirm)
-        pinpoint.engage();
+        pinpoint = myOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        //pinpoint.setI2cAddress(I2cAddr.create7bit(0x31)); // Default address for Pinpoint (check docs to confirm)
+        //pinpoint.engage();
 
         // zero out all the odometry readings.
         resetOdometry();
@@ -140,7 +144,7 @@ public class SimplifiedOdometryRobot {
         aMotor.setDirection(direction);
         //aMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);  // Reset Encoders to zero
         aMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-       // aMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);  // Requires motor encoder cables to be hooked up.
+        // aMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);  // Requires motor encoder cables to be hooked up.
         return aMotor;
     }
 
@@ -150,18 +154,25 @@ public class SimplifiedOdometryRobot {
      * @return true
      */
     public boolean readSensors() {
-        byte[] data = pinpoint.read(0x00, 8);
+        pinpoint.update();
 
-        int yCounts = ((data[3] & 0xFF) << 24) | ((data[2] & 0xFF) << 16) | ((data[1] & 0xFF) << 8) | (data[0] & 0xFF);
-        int xCounts = ((data[7] & 0xFF) << 24) | ((data[6] & 0xFF) << 16) | ((data[5] & 0xFF) << 8) | (data[4] & 0xFF);
+        // Read data (mm, radians)
+        double y_mm = pinpoint.getPosX();
+        double x_mm = pinpoint.getPosY();
+
+        // Convert mm → counts if you still want counts
+        int yCounts = (int)((y_mm/25.4) / ODOM_INCHES_PER_COUNT);
+        int xCounts = (int)((x_mm/25.4) / ODOM_INCHES_PER_COUNT);
 
         rawDriveOdometer = yCounts * (INVERT_DRIVE_ODOMETRY ? -1 : 1);
         rawStrafeOdometer = xCounts * (INVERT_STRAFE_ODOMETRY ? -1 : 1);
+        rawHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        heading = rawHeading - headingOffset;
+
 
         driveDistance = (rawDriveOdometer - driveOdometerOffset) * ODOM_INCHES_PER_COUNT;
         strafeDistance = (rawStrafeOdometer - strafeOdometerOffset) * ODOM_INCHES_PER_COUNT;
-        rawHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        heading = rawHeading - headingOffset;
+
 
         if (showTelemetry) {
             myOpMode.telemetry.addData("Pinpoint Ax:Lat", "%6d %6d", rawDriveOdometer, rawStrafeOdometer);
@@ -180,6 +191,8 @@ public class SimplifiedOdometryRobot {
      * @param power Maximum power to apply.  This number should always be positive.
      * @param holdTime Minimum time (sec) required to hold the final position.  0 = no hold.
      */
+
+    
     public void drive(double distanceInches, double power, double holdTime) {
         resetOdometry();
 
@@ -205,6 +218,8 @@ public class SimplifiedOdometryRobot {
         }
         stopRobot();
     }
+    
+    
 
     /**
      * Strafe in the lateral (left/right) direction, maintain the current heading and don't drift fwd/bwd
